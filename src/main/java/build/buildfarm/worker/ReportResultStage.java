@@ -37,6 +37,7 @@ import io.grpc.Deadline;
 import io.grpc.StatusException;
 import io.grpc.protobuf.StatusProto;
 import java.io.IOException;
+import java.lang.IllegalStateException;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -117,6 +118,11 @@ public class ReportResultStage extends PipelineStage {
           blacklist = true;
         }
       }
+    } catch (IllegalStateException e) {
+      // Invalid rule args can result. e.g. Rule output is a director
+      // rather than file
+      logger.log(Level.SEVERE, String.format("error uploading output"), e);
+      blacklist = true;
     } catch (InterruptedException | ClosedByInterruptException e) {
       // cancellation here should not be logged
       return null;
